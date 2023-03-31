@@ -14,6 +14,34 @@ jobs:
           repository: moergo-sc/zmk
           ref: main
           path: src
+          fetch-depth: 0
+
+      # Say that you want to merge just the actual changes from the PR commits
+      # themselves:
+      - name: merge changes from turbo key PR zmkfirmware/zmk#1414
+        env:
+          owner: zmkfirmware
+          repo: zmk
+          PR: 1414
+        run: |
+          cd src
+          export GIT_COMMITTER_NAME='Github Action' GIT_AUTHOR_NAME='Github Action'
+          curl -SsL -o /tmp/${PR}.patch https://github.com/${owner}/${repo}/pull/${PR}.patch
+          git apply -3 < /tmp/${PR}.patch
+          git commit -m 'Apply changes from ${owner}/${repo} PR#${PR}'
+
+      # Say you want to merge the whole git branch for the PR, including all its history:
+      - name: merge branch for BT serial number prefix PR moergosc/zmk#11
+        env:
+          owner: moergo-sc
+          repo: zmk
+          PR: 11
+        run: |
+          cd src
+          export GIT_COMMITTER_NAME='Github Action' GIT_AUTHOR_NAME='Github Action'
+          git fetch https://github.com/${owner}/${repo} pull/${PR}/head:refs/remotes/upstream/pull/${PR}
+          git merge -m "Merge ${owner}/${repo} PR#${PR}" refs/remotes/upstream/pull/${PR}
+
       - uses: cachix/install-nix-action@v18
         with:
           nix_path: nixpkgs=channel:nixos-22.05
